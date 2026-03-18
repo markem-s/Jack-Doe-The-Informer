@@ -21,7 +21,7 @@ app.command("/jack", async ({ ack, respond }) => {
   await app.start();
   console.log("🛰  ARKEM Press Bot started (Socket Mode)");
   console.log("   Slash command: /jack");
-  console.log("   Scheduled: every Thursday at 10:00 AM");
+  console.log("   Scheduled: every Thursday at 10:00 GMT");
 
   // Run every Thursday at 10:00
   cron.schedule("0 10 * * 4", async () => {
