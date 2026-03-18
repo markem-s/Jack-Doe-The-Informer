@@ -30,10 +30,10 @@ const RSS_FEEDS = [
 
   // ── Geopolitics / Conflict ─────────────────────────────────────────────────
   "https://feeds.bbci.co.uk/news/world/rss.xml",              // BBC World News
-  "https://www.aljazeera.com/xml/rss/all.xml",                 // Al Jazeera
   "https://www.theguardian.com/world/rss",                     // The Guardian World
   "https://rss.nytimes.com/services/xml/rss/nyt/World.xml",    // NYT World
-  "https://www.middleeasteye.net/rss",                         // Middle East Eye (Iran/region)
+  "https://foreignpolicy.com/feed/",                           // Foreign Policy
+  "https://www.spiegel.de/international/index.rss",            // Der Spiegel International
 ];
 
 // Number of articles to pick per feed
