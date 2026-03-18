@@ -131,7 +131,7 @@ This week's most relevant press article is:
 "${article.title}" (${article.source})
 ${article.summary}
 
-Based on this article, generate ONE compelling, concrete use case where ARKEM could have been applied. Pick the most fitting ecosystem(s) or module(s) — don't force all three.
+Based on this article, generate ONE compelling, concrete use case that spans at least 3 ARKEM modules working together as a coordinated operation. The use case should show how an analyst would move through multiple modules in sequence — not use them in isolation.
 
 Format your response exactly like this:
 
@@ -142,11 +142,11 @@ Format your response exactly like this:
 **Scenario:**
 [2-3 sentences describing a realistic operational scenario that mirrors what the press covers]
 
-**How ARKEM helps:**
-[3-4 bullet points. Be specific: name the ecosystem and module (e.g. MDS / Motion Tracer, SSE / Neon, UCC / Nitrogen, Carbon, Crow, Gravel), reference real features like alias deployment, RASCLS governance, device flagging, Kepler.gl layers, dwell time analysis, L1-L3 network mapping, geofence targeting, narrative monitoring, signal detection, etc.]
+**Operational flow:**
+[At least 3 numbered steps, each tied to a specific module. Format each step as: "**[Ecosystem / Module]** — [what the analyst does and what the module reveals or enables]". Steps should build on each other logically — the output of one feeds the next.]
 
 **Intelligence value:**
-[1-2 sentences on the strategic or tactical outcome this enables]
+[1-2 sentences on the combined strategic or tactical outcome that only becomes possible by connecting these modules together]
 
 Keep it grounded and credible — written for an intelligence analyst or mission commander audience, not a sales deck.`;
 
