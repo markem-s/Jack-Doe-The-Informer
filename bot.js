@@ -43,41 +43,8 @@ async function fetchArticles() {
   return articles;
 }
 
-// ─── GENERATE USE CASE VIA CLAUDE ────────────────────────────────────────────
-async function generateUseCase(articles) {
-  const articleSummaries = articles
-    .map((a, i) => `[${i + 1}] "${a.title}" (${a.source})\n${a.summary}`)
-    .join("\n\n");
-
-  const prompt = `You are a senior product strategist for ARKEM Intelligence Platform — a geospatial device-tracking and intelligence analysis suite used by intelligence professionals.
-
-ARKEM's two core products are:
-- MDS: a geospatial device-tracking platform (built on Kepler.gl) for visualising and investigating device intelligence
-- Neon: a mission-based operational platform for managing AI alias personas in outbound and inbound intelligence operations (OSINT, HUMINT support, social engineering campaigns)
-
-Below are this week's press articles from the intelligence, OSINT, geospatial, and defence domains:
-
-${articleSummaries}
-
-Based on these articles, identify ONE compelling, concrete use case where ARKEM (either MDS, Neon, or both) could have been applied. 
-
-Format your response exactly like this:
-
-## 🛰 Weekly ARKEM Use Case
-
-**Inspired by:** [article title(s) and source]
-
-**Scenario:**
-[2-3 sentences describing a realistic operational scenario that mirrors what the press covers]
-
-**How ARKEM helps:**
-[3-4 bullet points. Be specific: name MDS or Neon, reference real features like alias deployment, RASCLS compliance, device flagging, Kepler.gl layers, Query Builder, Multi-Tracer, etc. where relevant]
-
-**Intelligence value:**
-[1-2 sentences on the strategic or tactical outcome this enables]
-
-Keep it grounded and credible — written for an intelligence analyst or mission commander audience, not a sales deck.`;
-
+// ─── CLAUDE API HELPER ───────────────────────────────────────────────────────
+async function claudeCall(prompt, maxTokens = 1000) {
   const response = await fetch("https://api.anthropic.com/v1/messages", {
     method: "POST",
     headers: {
@@ -87,7 +54,7 @@ Keep it grounded and credible — written for an intelligence analyst or mission
     },
     body: JSON.stringify({
       model: "claude-sonnet-4-20250514",
-      max_tokens: 1000,
+      max_tokens: maxTokens,
       messages: [{ role: "user", content: prompt }],
     }),
   });
@@ -101,12 +68,76 @@ Keep it grounded and credible — written for an intelligence analyst or mission
   return data.content.find((b) => b.type === "text")?.text || "";
 }
 
+// ─── PICK MOST RELEVANT ARTICLE ───────────────────────────────────────────────
+async function pickMostRelevant(articles) {
+  const articleList = articles
+    .map((a, i) => `[${i}] "${a.title}" (${a.source})\n${a.summary}`)
+    .join("\n\n");
+
+  const prompt = `You are an analyst for ARKEM Intelligence Platform — a geospatial device-tracking and intelligence analysis suite.
+
+ARKEM's two core products are:
+- MDS: a geospatial device-tracking platform for visualising and investigating device intelligence
+- Neon: a mission-based platform for managing AI alias personas in OSINT and HUMINT operations
+
+Below are this week's press articles:
+
+${articleList}
+
+Which single article is most relevant to ARKEM's domain (geospatial intelligence, device tracking, OSINT, HUMINT, surveillance, counter-intelligence, or defence operations)?
+
+Reply with ONLY the index number of the most relevant article (e.g. "3"). No explanation.`;
+
+  const result = await claudeCall(prompt, 10);
+  const index = parseInt(result.trim(), 10);
+
+  if (isNaN(index) || index < 0 || index >= articles.length) {
+    console.warn(`  ⚠ Could not parse article index from Claude ("${result}"), defaulting to 0`);
+    return articles[0];
+  }
+
+  console.log(`  ✓ Most relevant article [${index}]: "${articles[index].title}"`);
+  return articles[index];
+}
+
+// ─── GENERATE USE CASE VIA CLAUDE ────────────────────────────────────────────
+async function generateUseCase(article) {
+  const prompt = `You are a senior product strategist for ARKEM Intelligence Platform — a geospatial device-tracking and intelligence analysis suite used by intelligence professionals.
+
+ARKEM's two core products are:
+- MDS: a geospatial device-tracking platform (built on Kepler.gl) for visualising and investigating device intelligence
+- Neon: a mission-based operational platform for managing AI alias personas in outbound and inbound intelligence operations (OSINT, HUMINT support, social engineering campaigns)
+
+This week's most relevant press article is:
+
+"${article.title}" (${article.source})
+${article.summary}
+
+Based on this article, generate ONE compelling, concrete use case where ARKEM (either MDS, Neon, or both) could have been applied.
+
+Format your response exactly like this:
+
+## 🛰 Weekly ARKEM Use Case
+
+**Inspired by:** [article title and source]
+
+**Scenario:**
+[2-3 sentences describing a realistic operational scenario that mirrors what the press covers]
+
+**How ARKEM helps:**
+[3-4 bullet points. Be specific: name MDS or Neon, reference real features like alias deployment, RASCLS compliance, device flagging, Kepler.gl layers, Query Builder, Multi-Tracer, etc. where relevant]
+
+**Intelligence value:**
+[1-2 sentences on the strategic or tactical outcome this enables]
+
+Keep it grounded and credible — written for an intelligence analyst or mission commander audience, not a sales deck.`;
+
+  return await claudeCall(prompt, 1000);
+}
+
 // ─── POST TO SLACK ────────────────────────────────────────────────────────────
-async function postToSlack(useCase, articles) {
-  const sourceLinks = articles
-    .slice(0, 5)
-    .map((a) => `• <${a.link}|${a.title}> — ${a.source}`)
-    .join("\n");
+async function postToSlack(useCase, article) {
+  const sourceLinks = `• <${article.link}|${article.title}> — ${article.source}`;
 
   const blocks = [
     {
@@ -121,7 +152,7 @@ async function postToSlack(useCase, articles) {
       type: "section",
       text: {
         type: "mrkdwn",
-        text: `*Press sources used this week:*\n${sourceLinks}`,
+        text: `*Source article:*\n${sourceLinks}`,
       },
     },
     {
@@ -160,11 +191,14 @@ async function generateAndPost() {
       return;
     }
 
-    console.log(`  → Generating use case from ${articles.length} articles...`);
-    const useCase = await generateUseCase(articles);
+    console.log(`  → Picking most relevant article from ${articles.length} candidates...`);
+    const best = await pickMostRelevant(articles);
+
+    console.log(`  → Generating use case from: "${best.title}"...`);
+    const useCase = await generateUseCase(best);
 
     console.log("  → Posting to Slack...");
-    await postToSlack(useCase, articles);
+    await postToSlack(useCase, best);
 
     console.log("  ✓ Done.");
   } catch (err) {
