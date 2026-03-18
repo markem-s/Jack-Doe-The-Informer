@@ -18,6 +18,7 @@
   },
   "homepage": "https://github.com/markem-s/Jack-Doe-The-Informer#readme",
   "dependencies": {
+    "@slack/bolt": "^4.6.0",
     "@slack/web-api": "^7.15.0",
     "dotenv": "^17.3.1",
     "node-cron": "^4.2.1",

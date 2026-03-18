@@ -73,68 +73,69 @@ async function pickMostRelevant(articles) {
     .map((a, i) => `[${i}] "${a.title}" (${a.source})\n${a.summary}`)
     .join("\n\n");
 
-  const prompt = `You are an analyst for ARKEM — a unified intelligence platform organised into three ecosystems:
+  const prompt = `You are an analyst for ARKEM — a unified intelligence platform. You are focused exclusively on the MDS (Multi-Domain Surveillance) ecosystem.
 
-**MDS (Multi-Domain Surveillance):** Geospatial device tracking and visualisation (Kepler.gl), pattern-of-life analysis, device movement tracing (Motion Tracer), L1-L3 network relationship mapping, temporal investigation, real-time device pin rendering (50k+ pins/day), law enforcement and surveillance operations.
+**MDS (Multi-Domain Surveillance):** Geospatial device tracking and visualisation (Discover Map / Kepler.gl, 50k+ device pins), pattern-of-life analysis, device movement tracing (Motion Tracer — movement paths, dwell time, co-traveller detection), L1-L3 network relationship mapping (Networks), autonomous pattern playback (Monitor Mode), geofence-based initiative targeting (Hydrogen), law enforcement and surveillance operations.
 
-**SSE (Scaled Social Engineering):** AI-powered alias persona management (Neon), outbound/inbound HUMINT missions, multi-channel engagement (WhatsApp, Telegram), target behavioural profiling, RASCLS governance, undercover operations, social network infiltration, information elicitation, influence operations.
-
-**UCC (Unconventional Cyber Capabilities):** Mobile app vulnerability scanning (Nitrogen/Jenkins/BeVigil), offensive cyber operations, threat actor app analysis, supply chain security, exploit research.
-
-**Cross-pillar modules in development:**
-- Carbon: Physical intelligence collection, field-sourced artifact acquisition
-- Crow: Narrative and social media intelligence, sentiment monitoring, influence tracking
-- Gravel: Signal intelligence, radio spectrum monitoring, communication network detection
-
-An article is relevant if it describes a real-world scenario that exposes a capability gap or operational challenge that any of the above ecosystems or modules directly addresses — i.e. a situation where device tracking, AI alias operations, app vulnerabilities, physical intelligence, narrative monitoring, or signal intelligence would have changed the outcome.
+An article is relevant if it describes a real-world scenario where device tracking, geospatial surveillance, movement analysis, network relationship mapping, or geofence-based targeting would have changed the outcome or uncovered critical intelligence.
 
 Below are this week's press articles:
 
 ${articleList}
 
-Which single article provides the strongest hook for an ARKEM use case across MDS, SSE, UCC, or cross-pillar modules?
+Which 3 articles provide the strongest hooks for MDS use cases spanning Discover Map, Motion Tracer, Networks, Monitor Mode, or Hydrogen? Rank them best to worst.
 
-Reply with ONLY the index number (e.g. "3"). No explanation.`;
+Reply with ONLY 3 index numbers separated by commas (e.g. "3,0,7"). No explanation.`;
 
-  const result = await claudeCall(prompt, 10);
-  const index = parseInt(result.trim(), 10);
+  const result = await claudeCall(prompt, 20);
+  const indices = result.trim().split(",").map(s => parseInt(s.trim(), 10)).filter(n => !isNaN(n) && n >= 0 && n < articles.length);
 
-  if (isNaN(index) || index < 0 || index >= articles.length) {
-    console.warn(`  ⚠ Could not parse article index from Claude ("${result}"), defaulting to 0`);
+  if (indices.length === 0) {
+    console.warn(`  ⚠ Could not parse article indices from Claude ("${result}"), defaulting to 0`);
     return articles[0];
   }
 
-  console.log(`  ✓ Most relevant article [${index}]: "${articles[index].title}"`);
-  return articles[index];
+  // Randomly pick one of the top candidates for variety
+  const picked = indices[Math.floor(Math.random() * indices.length)];
+  console.log(`  ✓ Top candidates: [${indices.join(", ")}] — randomly selected [${picked}]: "${articles[picked].title}"`);
+  return articles[picked];
 }
+
+// ─── OPERATIONAL ANGLES (rotated randomly for variety) ───────────────────────
+const OPERATIONAL_ANGLES = [
+  "a counter-terrorism unit tracking a suspected cell across multiple cities",
+  "a law enforcement agency investigating an organised crime network's logistics routes",
+  "a border security team monitoring cross-border movement of a high-value target",
+  "a military intelligence team mapping the pattern-of-life of a threat actor near a critical installation",
+  "a financial crimes unit tracing the physical movements of a money laundering suspect",
+  "a protective intelligence team assessing threat actor proximity to a dignitary's schedule",
+  "a counter-proliferation team tracking individuals suspected of transferring restricted materials",
+];
 
 // ─── GENERATE USE CASE VIA CLAUDE ────────────────────────────────────────────
 async function generateUseCase(article) {
+  const angle = OPERATIONAL_ANGLES[Math.floor(Math.random() * OPERATIONAL_ANGLES.length)];
+  console.log(`  ✓ Operational angle: "${angle}"`);
   const prompt = `You are a senior product strategist for ARKEM Intelligence Platform — a geospatial device-tracking and intelligence analysis suite used by intelligence professionals.
 
-ARKEM is a unified intelligence platform with three ecosystems and a shared AI layer:
+You are focused exclusively on the MDS (Multi-Domain Surveillance) ecosystem. The MDS modules are:
 
-**MDS (Multi-Domain Surveillance):** Discover Map (Kepler.gl, 50k+ device pins), Motion Tracer (movement paths, dwell time, co-traveller detection), Networks (L1-L3 relationship graphs), Monitor Mode (autonomous pattern playback), Hydrogen (geofence-based initiative targeting).
-
-**SSE (Scaled Social Engineering):** Neon (mission workspace, AI alias personas, outbound/inbound HUMINT, RASCLS governance, objective activation workflow, multi-channel: WhatsApp/Telegram), Arkimedes AI (mission planning, alias development, target behavioural analysis).
-
-**UCC (Unconventional Cyber Capabilities):** Nitrogen (app scanning via Jenkins/BeVigil, vulnerability enumeration), Hydrogen (cyber initiative coordination), Magnesium (supplier marketplace for tools and exploits).
-
-**Cross-pillar modules in development:**
-- Carbon: Physical intelligence collection, field artifact acquisition, map-based task definition
-- Crow: Narrative/social media intelligence, sentiment monitoring, influence propagation tracking
-- Gravel: Signal intelligence, radio spectrum monitoring, communication network detection
+- **Discover Map** — Kepler.gl-based geospatial canvas rendering 50k+ device pins in real time; analysts load device datasets, apply filters, and surface location clusters
+- **Motion Tracer** — reconstructs individual device movement paths over time; reveals dwell locations, route patterns, and co-travellers (devices that move together)
+- **Networks** — L1 (direct contacts), L2 (contacts of contacts), L3 (extended network) relationship graphs built from device and comms data
+- **Monitor Mode** — autonomous playback of historical device patterns; detects recurring behaviours and anomalies without manual review
+- **Hydrogen** — geofence-based initiative targeting; analysts draw zones and receive alerts or device lists when targets enter or exit
 
 This week's most relevant press article is:
 
 "${article.title}" (${article.source})
 ${article.summary}
 
-Based on this article, generate ONE compelling, concrete use case that spans at least 3 ARKEM modules working together as a coordinated operation. The use case should show how an analyst would move through multiple modules in sequence — not use them in isolation.
+Based on this article, generate ONE compelling, concrete MDS use case that chains at least 3 of the above modules together as a coordinated surveillance operation. Frame the scenario around **${angle}**. The use case must show how an analyst moves through the modules in sequence — the output of one step feeds the next.
 
 Format your response exactly like this:
 
-## 🛰 Weekly ARKEM Use Case
+## 🛰 Weekly ARKEM Use Case — MDS
 
 **Inspired by:** [article title and source]
 
@@ -142,10 +143,10 @@ Format your response exactly like this:
 [2-3 sentences describing a realistic operational scenario that mirrors what the press covers]
 
 **Operational flow:**
-[At least 3 numbered steps, each tied to a specific module. Format each step as: "**[Ecosystem / Module]** — [what the analyst does and what the module reveals or enables]". Steps should build on each other logically — the output of one feeds the next.]
+[At least 3 numbered steps, each tied to a specific MDS module. Format each step as: "**MDS / [Module Name]** — [what the analyst does and what the module reveals or enables]". Steps must build on each other — output of one feeds the next.]
 
 **Intelligence value:**
-[1-2 sentences on the combined strategic or tactical outcome that only becomes possible by connecting these modules together]
+[1-2 sentences on the combined strategic or tactical outcome that only becomes possible by chaining these MDS modules together]
 
 Keep it grounded and credible — written for an intelligence analyst or mission commander audience, not a sales deck.`;
 
