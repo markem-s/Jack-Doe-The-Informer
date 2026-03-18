@@ -1,8 +1,21 @@
 const Parser = require("rss-parser");
 const { WebClient } = require("@slack/web-api");
+const fs = require("fs");
+const path = require("path");
 
 const parser = new Parser();
 const slack = new WebClient(process.env.SLACK_BOT_TOKEN);
+
+// ─── HISTORY (prevents repeat article+angle combos) ──────────────────────────
+const HISTORY_FILE = path.join(__dirname, ".history.json");
+
+function loadHistory() {
+  try { return JSON.parse(fs.readFileSync(HISTORY_FILE, "utf8")); } catch { return []; }
+}
+
+function saveHistory(history) {
+  fs.writeFileSync(HISTORY_FILE, JSON.stringify(history.slice(-50), null, 2));
+}
 
 // ─── RSS FEED SOURCES ────────────────────────────────────────────────────────
 const RSS_FEEDS = [
@@ -16,11 +29,11 @@ const RSS_FEEDS = [
   "https://warontherocks.com/feed/",                           // War on the Rocks
 
   // ── Geopolitics / Conflict ─────────────────────────────────────────────────
-  "https://feeds.reuters.com/reuters/worldNews",               // Reuters World
+  "https://feeds.bbci.co.uk/news/world/rss.xml",              // BBC World News
   "https://www.aljazeera.com/xml/rss/all.xml",                 // Al Jazeera
-  "https://kyivindependent.com/rss/",                          // Kyiv Independent (Ukraine)
-  "https://www.understandingwar.org/rss.xml",                  // ISW (Institute for the Study of War)
-  "https://rss.politico.com/national-security.xml",            // Politico National Security
+  "https://www.theguardian.com/world/rss",                     // The Guardian World
+  "https://rss.nytimes.com/services/xml/rss/nyt/World.xml",    // NYT World
+  "https://www.middleeasteye.net/rss",                         // Middle East Eye (Iran/region)
 ];
 
 // Number of articles to pick per feed
@@ -104,9 +117,12 @@ Reply with ONLY 3 index numbers separated by commas (e.g. "3,0,7"). No explanati
     return articles[0];
   }
 
-  // Randomly pick one of the top candidates for variety
-  const picked = indices[Math.floor(Math.random() * indices.length)];
-  console.log(`  ✓ Top candidates: [${indices.join(", ")}] — randomly selected [${picked}]: "${articles[picked].title}"`);
+  // Pick the first candidate not in recent history, fallback to random
+  const history = loadHistory();
+  const usedLinks = new Set(history.map(h => h.link));
+  const fresh = indices.find(i => !usedLinks.has(articles[i].link));
+  const picked = fresh !== undefined ? fresh : indices[Math.floor(Math.random() * indices.length)];
+  console.log(`  ✓ Top candidates: [${indices.join(", ")}] — selected [${picked}]: "${articles[picked].title}"`);
   return articles[picked];
 }
 
@@ -123,8 +139,15 @@ const OPERATIONAL_ANGLES = [
 
 // ─── GENERATE USE CASE VIA CLAUDE ────────────────────────────────────────────
 async function generateUseCase(article) {
-  const angle = OPERATIONAL_ANGLES[Math.floor(Math.random() * OPERATIONAL_ANGLES.length)];
+  const history = loadHistory();
+  const usedAngles = new Set(history.filter(h => h.link === article.link).map(h => h.angle));
+  const freshAngles = OPERATIONAL_ANGLES.filter(a => !usedAngles.has(a));
+  const pool = freshAngles.length > 0 ? freshAngles : OPERATIONAL_ANGLES;
+  const angle = pool[Math.floor(Math.random() * pool.length)];
   console.log(`  ✓ Operational angle: "${angle}"`);
+  // Save this combo to history
+  history.push({ link: article.link, angle, date: new Date().toISOString() });
+  saveHistory(history);
   const prompt = `You are a senior product strategist for ARKEM Intelligence Platform — a geospatial device-tracking and intelligence analysis suite used by intelligence professionals.
 
 You are focused exclusively on the MDS (Multi-Domain Surveillance) ecosystem. The MDS modules are:
