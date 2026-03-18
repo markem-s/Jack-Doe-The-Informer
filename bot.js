@@ -5,13 +5,22 @@ const parser = new Parser();
 const slack = new WebClient(process.env.SLACK_BOT_TOKEN);
 
 // ─── RSS FEED SOURCES ────────────────────────────────────────────────────────
-// Add or remove feeds relevant to your intelligence/geospatial/OSInt domain
 const RSS_FEEDS = [
-  "https://feeds.feedburner.com/TheHackersNews",               // cyber/intel
-  "https://www.bellingcat.com/feed/",                          // OSINT investigations
-  "https://www.c4isrnet.com/arc/outboundfeeds/rss/",           // C4ISR / defence
-  "https://rss.janes.com/content/janes/all/news/en",           // Jane's defence
-  "https://feeds.feedburner.com/SettlersOfCatan",              // placeholder - replace
+  // ── Cyber / Intel ──────────────────────────────────────────────────────────
+  "https://feeds.feedburner.com/TheHackersNews",               // The Hacker News
+  "https://www.bellingcat.com/feed/",                          // Bellingcat OSINT
+
+  // ── Defence / Military ─────────────────────────────────────────────────────
+  "https://www.c4isrnet.com/arc/outboundfeeds/rss/",           // C4ISR Net
+  "https://www.defenseone.com/rss/all/",                       // Defense One
+  "https://warontherocks.com/feed/",                           // War on the Rocks
+
+  // ── Geopolitics / Conflict ─────────────────────────────────────────────────
+  "https://feeds.reuters.com/reuters/worldNews",               // Reuters World
+  "https://www.aljazeera.com/xml/rss/all.xml",                 // Al Jazeera
+  "https://kyivindependent.com/rss/",                          // Kyiv Independent (Ukraine)
+  "https://www.understandingwar.org/rss.xml",                  // ISW (Institute for the Study of War)
+  "https://rss.politico.com/national-security.xml",            // Politico National Security
 ];
 
 // Number of articles to pick per feed
