@@ -37,7 +37,7 @@ const RSS_FEEDS = [
 ];
 
 // Number of articles to pick per feed
-const ARTICLES_PER_FEED = 2;
+const ARTICLES_PER_FEED = 4;
 
 // ─── FETCH PRESS ─────────────────────────────────────────────────────────────
 async function fetchArticles() {
@@ -105,11 +105,11 @@ Below are this week's press articles:
 
 ${articleList}
 
-Which 3 articles provide the strongest hooks for MDS use cases spanning Discover Map, Motion Tracer, Networks, Monitor Mode, or Hydrogen? Rank them best to worst.
+Which 5 articles provide the strongest hooks for MDS use cases spanning Discover Map, Motion Tracer, Networks, Monitor Mode, or Hydrogen? Rank them best to worst.
 
-Reply with ONLY 3 index numbers separated by commas (e.g. "3,0,7"). No explanation.`;
+Reply with ONLY 5 index numbers separated by commas (e.g. "3,0,7,12,5"). No explanation.`;
 
-  const result = await claudeCall(prompt, 20);
+  const result = await claudeCall(prompt, 30);
   const indices = result.trim().split(",").map(s => parseInt(s.trim(), 10)).filter(n => !isNaN(n) && n >= 0 && n < articles.length);
 
   if (indices.length === 0) {
@@ -117,12 +117,20 @@ Reply with ONLY 3 index numbers separated by commas (e.g. "3,0,7"). No explanati
     return articles[0];
   }
 
-  // Pick the first candidate not in recent history, fallback to random
+  // Pick the first AI candidate not in recent history
   const history = loadHistory();
   const usedLinks = new Set(history.map(h => h.link));
   const fresh = indices.find(i => !usedLinks.has(articles[i].link));
-  const picked = fresh !== undefined ? fresh : indices[Math.floor(Math.random() * indices.length)];
-  console.log(`  ✓ Top candidates: [${indices.join(", ")}] — selected [${picked}]: "${articles[picked].title}"`);
+
+  // If all AI candidates are used, fall back to any fresh article in the full pool
+  if (fresh !== undefined) {
+    console.log(`  ✓ Top candidates: [${indices.join(", ")}] — selected [${fresh}]: "${articles[fresh].title}"`);
+    return articles[fresh];
+  }
+
+  const anyFresh = articles.findIndex(a => !usedLinks.has(a.link));
+  const picked = anyFresh !== -1 ? anyFresh : indices[Math.floor(Math.random() * indices.length)];
+  console.log(`  ⚠ All AI candidates used — falling back to [${picked}]: "${articles[picked].title}"`);
   return articles[picked];
 }
 
