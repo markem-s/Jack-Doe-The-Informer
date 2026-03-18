@@ -74,19 +74,28 @@ async function pickMostRelevant(articles) {
     .map((a, i) => `[${i}] "${a.title}" (${a.source})\n${a.summary}`)
     .join("\n\n");
 
-  const prompt = `You are an analyst for ARKEM Intelligence Platform — a geospatial device-tracking and intelligence analysis suite.
+  const prompt = `You are an analyst for ARKEM — a unified intelligence platform organised into three ecosystems:
 
-ARKEM's two core products are:
-- MDS: a geospatial device-tracking platform for visualising and investigating device intelligence
-- Neon: a mission-based platform for managing AI alias personas in OSINT and HUMINT operations
+**MDS (Multi-Domain Surveillance):** Geospatial device tracking and visualisation (Kepler.gl), pattern-of-life analysis, device movement tracing (Motion Tracer), L1-L3 network relationship mapping, temporal investigation, real-time device pin rendering (50k+ pins/day), law enforcement and surveillance operations.
+
+**SSE (Scaled Social Engineering):** AI-powered alias persona management (Neon), outbound/inbound HUMINT missions, multi-channel engagement (WhatsApp, Telegram), target behavioural profiling, RASCLS governance, undercover operations, social network infiltration, information elicitation, influence operations.
+
+**UCC (Unconventional Cyber Capabilities):** Mobile app vulnerability scanning (Nitrogen/Jenkins/BeVigil), offensive cyber operations, threat actor app analysis, supply chain security, exploit research.
+
+**Cross-pillar modules in development:**
+- Carbon: Physical intelligence collection, field-sourced artifact acquisition
+- Crow: Narrative and social media intelligence, sentiment monitoring, influence tracking
+- Gravel: Signal intelligence, radio spectrum monitoring, communication network detection
+
+An article is relevant if it describes a real-world scenario that exposes a capability gap or operational challenge that any of the above ecosystems or modules directly addresses — i.e. a situation where device tracking, AI alias operations, app vulnerabilities, physical intelligence, narrative monitoring, or signal intelligence would have changed the outcome.
 
 Below are this week's press articles:
 
 ${articleList}
 
-Which single article is most relevant to ARKEM's domain (geospatial intelligence, device tracking, OSINT, HUMINT, surveillance, counter-intelligence, or defence operations)?
+Which single article provides the strongest hook for an ARKEM use case across MDS, SSE, UCC, or cross-pillar modules?
 
-Reply with ONLY the index number of the most relevant article (e.g. "3"). No explanation.`;
+Reply with ONLY the index number (e.g. "3"). No explanation.`;
 
   const result = await claudeCall(prompt, 10);
   const index = parseInt(result.trim(), 10);
@@ -104,16 +113,25 @@ Reply with ONLY the index number of the most relevant article (e.g. "3"). No exp
 async function generateUseCase(article) {
   const prompt = `You are a senior product strategist for ARKEM Intelligence Platform — a geospatial device-tracking and intelligence analysis suite used by intelligence professionals.
 
-ARKEM's two core products are:
-- MDS: a geospatial device-tracking platform (built on Kepler.gl) for visualising and investigating device intelligence
-- Neon: a mission-based operational platform for managing AI alias personas in outbound and inbound intelligence operations (OSINT, HUMINT support, social engineering campaigns)
+ARKEM is a unified intelligence platform with three ecosystems and a shared AI layer:
+
+**MDS (Multi-Domain Surveillance):** Discover Map (Kepler.gl, 50k+ device pins), Motion Tracer (movement paths, dwell time, co-traveller detection), Networks (L1-L3 relationship graphs), Monitor Mode (autonomous pattern playback), Hydrogen (geofence-based initiative targeting).
+
+**SSE (Scaled Social Engineering):** Neon (mission workspace, AI alias personas, outbound/inbound HUMINT, RASCLS governance, objective activation workflow, multi-channel: WhatsApp/Telegram), Arkimedes AI (mission planning, alias development, target behavioural analysis).
+
+**UCC (Unconventional Cyber Capabilities):** Nitrogen (app scanning via Jenkins/BeVigil, vulnerability enumeration), Hydrogen (cyber initiative coordination), Magnesium (supplier marketplace for tools and exploits).
+
+**Cross-pillar modules in development:**
+- Carbon: Physical intelligence collection, field artifact acquisition, map-based task definition
+- Crow: Narrative/social media intelligence, sentiment monitoring, influence propagation tracking
+- Gravel: Signal intelligence, radio spectrum monitoring, communication network detection
 
 This week's most relevant press article is:
 
 "${article.title}" (${article.source})
 ${article.summary}
 
-Based on this article, generate ONE compelling, concrete use case where ARKEM (either MDS, Neon, or both) could have been applied.
+Based on this article, generate ONE compelling, concrete use case where ARKEM could have been applied. Pick the most fitting ecosystem(s) or module(s) — don't force all three.
 
 Format your response exactly like this:
 
@@ -125,7 +143,7 @@ Format your response exactly like this:
 [2-3 sentences describing a realistic operational scenario that mirrors what the press covers]
 
 **How ARKEM helps:**
-[3-4 bullet points. Be specific: name MDS or Neon, reference real features like alias deployment, RASCLS compliance, device flagging, Kepler.gl layers, Query Builder, Multi-Tracer, etc. where relevant]
+[3-4 bullet points. Be specific: name the ecosystem and module (e.g. MDS / Motion Tracer, SSE / Neon, UCC / Nitrogen, Carbon, Crow, Gravel), reference real features like alias deployment, RASCLS governance, device flagging, Kepler.gl layers, dwell time analysis, L1-L3 network mapping, geofence targeting, narrative monitoring, signal detection, etc.]
 
 **Intelligence value:**
 [1-2 sentences on the strategic or tactical outcome this enables]
