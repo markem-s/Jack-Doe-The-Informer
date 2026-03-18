@@ -1,0 +1,26 @@
+{
+  "name": "jackdoe",
+  "version": "1.0.0",
+  "description": "Weekly Slack bot that reads intelligence/defence RSS feeds, generates an ARKEM-specific use case via Claude, and posts it to a Slack channel every Monday morning.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/markem-s/Jack-Doe-The-Informer.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/markem-s/Jack-Doe-The-Informer/issues"
+  },
+  "homepage": "https://github.com/markem-s/Jack-Doe-The-Informer#readme",
+  "dependencies": {
+    "@slack/web-api": "^7.15.0",
+    "dotenv": "^17.3.1",
+    "node-cron": "^4.2.1",
+    "rss-parser": "^3.13.0"
+  }
+}
